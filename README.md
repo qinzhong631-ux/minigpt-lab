@@ -1,53 +1,143 @@
-# MiniGPT Lab
+# MiniGPT
 
-**从零实现、训练并观察字符级自回归 Transformer。** 适用于 PyTorch 入门、注意力机制教学和可复现的小规模对照实验。
+<p align="center">
+  <b>A Minimal GPT Implementation from Scratch with PyTorch</b><br/>
+  <i>Learn the architecture. Train a character language model. Examine the evidence.</i>
+</p>
 
-[模型实现](model.py) · [实验方法与结果](docs/EXPERIMENTS.md) · [验证记录](docs/VALIDATION.md) · [原始指标](results/)
+<p align="center">
+  <img alt="Python 3.11 or newer" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&amp;logo=python&amp;logoColor=white"/>
+  <img alt="PyTorch 2.14.1" src="https://img.shields.io/badge/PyTorch-2.14.1-EE4C2C?style=for-the-badge&amp;logo=pytorch&amp;logoColor=white"/>
+  <a href="LICENSE"><img alt="Code License MIT" src="https://img.shields.io/badge/License-MIT-2EA44F?style=for-the-badge"/></a><br/>
+  <img alt="Transformer Decoder" src="https://img.shields.io/badge/Transformer-Decoder-7057FF?style=for-the-badge"/>
+  <img alt="Deep Learning" src="https://img.shields.io/badge/Deep%20Learning-PyTorch-CC342D?style=for-the-badge"/>
+  <img alt="Character-level Language Model" src="https://img.shields.io/badge/Language%20Model-Character%20Level-007EC6?style=for-the-badge"/>
+</p>
 
-本项目使用 Python、PyTorch 和 Gradio，约 **11.4 万参数**，默认配置适合 CPU；环境支持时自动选择 CUDA 或 Apple MPS。它是字符语言模型，不是通用聊天助手，与 MiniGPT-4 无关。
+<p align="center">
+  <a href="#method-overview">Architecture</a> ·
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#experiments--results">Experiments</a> ·
+  <a href="model.py">Model Code</a> ·
+  <a href="docs/VALIDATION.md">Verification Record</a>
+</p>
 
-## 项目背景
+---
 
-将复杂语言模型拆成可读、可测试的基本组件，可以更清楚地理解下一字符预测、因果遮罩和自回归生成。本项目以公开英文小说为语料，保留训练配置、随机种子、loss、参数量和环境信息，并在固定参数量下比较单头与多头注意力。
+## Introduction
 
-代码优先服务教学和实验透明性，没有引入分布式训练、模型编译或预训练模型下载。
+> **MiniGPT** is an educational implementation of a decoder-only Transformer for character-level language modeling. It makes the path from token embeddings to next-token prediction explicit, so learners can connect the mathematics of GPT to readable PyTorch code. The project combines a small autoregressive model, a reproducible training pipeline, controlled attention experiments, and a Gradio interface to support hands-on study of architecture, optimization, and generation.
 
-## 核心功能
+The learning objective is to understand **how a GPT-style model works and how to evaluate it carefully**: implement causal attention, prevent data leakage, trace gradients through residual blocks, and compare design choices under a fixed training budget. Core functions include Chinese comments for guided code reading.
 
-- 独立实现 Token/Position Embedding、因果单头/多头注意力、FFN 和 Transformer Block。
-- 字符级编码，训练词表与验证数据隔离，未知字符使用 UNK。
-- CPU 低资源默认配置，支持 `--device auto/cpu/cuda/mps`。
-- 保存训练/验证 loss、最佳/最终 checkpoint、完整配置、种子、环境和数据/源码校验值。
-- 三个配对种子的单头/四头对照实验，参数量与初始化可核查。
-- 命令行与 Gradio 文本生成，支持 temperature、top-k 和可复现采样种子。
-- 中文关键注释和自动测试，包括注意力数值对照、因果性、梯度及端到端训练生成。
+| Project at a glance | Recorded configuration |
+|---|---|
+| Task | Next-character prediction and autoregressive text generation |
+| Model | 2 Transformer blocks · 64-dimensional embeddings · 4 attention heads |
+| Scale | **113,920 parameters** with the recorded 76-token vocabulary |
+| Stack | Python · PyTorch · Gradio |
+| Execution | CPU-friendly defaults; automatic CUDA / MPS / CPU selection |
+| Evidence | Saved losses, configurations, seeds, data hashes, and generation samples |
 
-## 模型架构
+This is a learning and experimental project, not a pretrained conversational assistant or the MiniGPT-4 multimodal project.
+
+---
+
+## What Makes MiniGPT Special?
+
+| Capability | What It Does |
+|---|---|
+| **Transformer Decoder** | Stacks pre-LayerNorm blocks with causal attention, position-wise feed-forward networks, and residual connections. |
+| **Multi-head Self Attention** | Computes scaled dot-product attention with an explicit causal mask; supports single-head and multi-head configurations at the same total embedding width. |
+| **Positional Embedding** | Adds learned absolute position vectors to token embeddings, giving the model information about character order. |
+| **Autoregressive Generation** | Samples one character at a time with temperature, optional top-k filtering, and a local sampling seed. |
+| **Training Pipeline** | Trains with AdamW, gradient clipping, periodic loss evaluation, and best/final checkpoint saving. |
+| **Controlled Experiments** | Compares 1 vs. 4 heads across three paired seeds, with equal parameter counts and matching initial-weight hashes within each pair. |
+| **Interactive Exploration** | Provides a Gradio interface for prompt-based generation, sampling controls, model information, and recorded loss curves. |
+| **Implementation Checks** | Includes numerical attention comparisons, causal-prefix checks, gradient checks, a small-batch overfit test, and training-to-generation integration tests. |
+
+Explore the implementation: [model](model.py) · [data pipeline](data.py) · [training](train.py) · [generation](generate.py) · [experiments](compare.py).
+
+---
+
+## Method Overview
 
 ```mermaid
-flowchart LR
-    A[字符编号] --> B[Token Embedding + Position Embedding]
-    B --> C[Transformer Blocks × 2]
-    C --> D[LayerNorm]
-    D --> E[词表投影]
-    E --> F[下一字符概率与采样]
+flowchart TB
+    A["Input text"] --> B["Input tokens: character IDs"]
+    B --> C["Token Embedding"]
+    P["Position indices"] --> D["Learned Position Embedding"]
+    C --> E["Add embeddings"]
+    D --> E
+    E --> F["Transformer Blocks × 2"]
+    F --> G["Final LayerNorm"]
+    G --> H["Language Model Head"]
+    H --> I["Next Token Prediction: character logits"]
+    I --> J["Temperature / optional top-k + sampling"]
+    J -. "Append generated character" .-> B
 ```
 
-每个 Block 采用 Pre-LayerNorm 和两条残差连接：
+**Inside each Transformer block:**
 
 ```text
-x = x + CausalMultiHeadAttention(LayerNorm(x))
+x = x + CausalSelfAttention(LayerNorm(x))
 x = x + FeedForward(LayerNorm(x))
+
 FeedForward: Linear(d, 4d) → GELU → Linear(4d, d)
 ```
 
-注意力为 `softmax(QKᵀ / sqrt(d_head) + causal_mask)V`。遮罩使每个位置只能观察自身及前文。单头使用同一实现的 `H=1` 特例；总宽度保持不变，所以改变 head 数不改变投影参数量。
+Attention uses `softmax(QKᵀ / √d_head + causal_mask)V`. Future positions are masked before softmax, so a character cannot use later input positions to predict its successor. Multiple heads are concatenated and passed through an output projection.
 
-默认配置：2 层、宽度 64、4 个头、上下文 64、batch 8、AdamW 学习率 0.0003、dropout 0、训练 200 步、seed 42、CPU 两线程。当前语料词表为 76（含 UNK），总参数量 **113,920**。
+During training, the model minimizes cross-entropy against targets shifted by one character. During generation, it appends each sampled character and uses the most recent context window; learned positions restart at zero when that window is cropped.
 
-## 安装
+**Default training configuration** — 64-character context, batch size 8, 200 updates, AdamW learning rate `3e-4`, weight decay `0.01`, gradient clipping `1.0`, dropout `0.0`, seed `42`, and two CPU threads. Configuration lives in [`ModelConfig`](model.py) and [`TrainConfig`](train.py), with training options exposed through the command line.
 
-要求 **Python >= 3.11**。本次实际验证环境为 Windows 10 / Python 3.14.2 / PyTorch 2.14.1+cpu。其他操作系统和 Python 版本尚未实测。
+---
+
+## Repository Structure
+
+```text
+minigpt-lab/
+├── model.py                  # Embeddings, attention, FFN, blocks, and MiniGPT
+├── data.py                   # Character tokenizer, data split, and batches
+├── runtime.py                # Device selection, seeds, and environment records
+├── prepare_data.py           # Public corpus download and provenance
+├── train.py                  # Optimization, evaluation, and checkpoints
+├── generate.py               # Autoregressive text generation
+├── compare.py                # Single-head vs. four-head experiments
+├── app.py                    # Gradio generation interface
+├── tests/
+│   ├── test_core.py          # Data and Transformer behavior
+│   ├── test_pipeline.py      # Training, checkpoints, and generation
+│   └── test_showcase.py      # Experiment controls and UI integration
+├── scripts/
+│   └── verify_app.py         # Live HTTP generation verification
+├── data/
+│   └── source.json           # Recorded corpus source and SHA256 hashes
+├── results/
+│   ├── default/              # Recorded 1,000-step demonstration run
+│   ├── comparison/           # Six recorded attention-comparison runs
+│   ├── smoke/                # Recorded 10-step CPU run
+│   └── publication_checks.json
+├── docs/
+│   ├── EXPERIMENTS.md        # Experimental design, results, and limitations
+│   └── VALIDATION.md         # Verification history and known boundaries
+├── licenses/                 # Third-party notices and data-use information
+├── .gitignore
+├── requirements.txt
+├── LICENSE
+└── README.md
+```
+
+Model code is organized as small modules at the repository root. Downloaded text, checkpoints, and new training outputs are generated locally under `data/` and `runs/` and are excluded from Git. The published `results/` directory contains measured records, **not pretrained weights**.
+
+---
+
+## Quick Start
+
+### 1. Create an environment
+
+Use **Python 3.11 or newer**. The recorded environment is Windows 10 with Python 3.14.2 and PyTorch 2.14.1+cpu; other platforms and Python versions have not been verified.
 
 ```bash
 git clone https://github.com/qinzhong631-ux/minigpt-lab.git
@@ -55,139 +145,156 @@ cd minigpt-lab
 python -m venv .venv
 ```
 
-激活环境：
+<details>
+<summary>Activate the environment on your platform</summary>
+
+**Windows PowerShell**
 
 ```powershell
-# Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 ```
 
+**Linux / macOS**
+
 ```bash
-# Linux / macOS
 source .venv/bin/activate
 ```
 
-安装依赖：
+</details>
 
 ```bash
-python -m pip install --upgrade pip
-# Windows/Linux 仅需 CPU 时，可先从官方 CPU 索引安装对应构建
+python -m pip install -r requirements.txt
+```
+
+For a CPU-only setup on Windows/Linux, install the corresponding PyTorch build before the remaining requirements:
+
+```bash
 python -m pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
 python -m pip install -r requirements.txt
 ```
 
-macOS 或 CUDA 环境请按 [PyTorch 官方安装说明](https://pytorch.org/get-started/locally/) 安装适配设备的 PyTorch，再安装其余依赖。原始实验使用 NumPy 2.4.0，该版本后来被上游撤回。发布依赖改为未撤回的 2.4.6，原始实验元数据不改写。仓库固定直接依赖版本；`torch==2.14.1` 允许对应的 `+cpu` / CUDA 构建。完整环境见 [展示运行元数据](results/default/metadata.json)。没有锁定全部传递依赖，因此不承诺跨版本或硬件位级一致。
+For CUDA or macOS, follow the [official PyTorch installation guide](https://pytorch.org/get-started/locally/) for the appropriate build. Direct dependencies are pinned; the complete transitive dependency set is not locked. The publication requirements use NumPy 2.4.6, while the original experiment metadata retains the NumPy 2.4.0 version used for those runs. See the [verification record](docs/VALIDATION.md) for the dependency check and its limits.
 
-## 从准备数据到生成文本
-
-**仓库不包含训练语料全文或模型权重。首次克隆后需要先准备数据并训练。** 已公开的 `results/` 是实验记录，不能直接加载为模型。
+### 2. Prepare the corpus and train
 
 ```bash
-# 1. 下载公开文本并保留原件、来源和校验值
 python prepare_data.py
-
-# 2. 默认低资源训练：200 步；自动选择可用设备
 python train.py
+```
 
-# 3. 读取训练产生的 runs/default/best.pt
-python generate.py --prompt "Alice" --max-new-tokens 200 --seed 42
+The first command downloads the public corpus and retains its original text and provenance locally. The second runs the default 200-step training configuration, automatically selecting CUDA, then MPS, then CPU when available.
 
-# 4. 启动本地交互界面
+A fresh clone needs this preparation and training step before generation. If the data host is unavailable, retry later or save the complete source text as `data/alice_original.txt` and rerun the preparation command. Output directories must be empty; use a new `--out` value to preserve previous runs.
+
+### 3. Generate text and open the interface
+
+```bash
+python generate.py --prompt "Alice" --max-new-tokens 200 --temperature 0.8 --seed 42
 python app.py
 ```
 
-打开终端显示的地址，默认是 `http://127.0.0.1:7860`。可调整起始文本、生成长度、temperature、top-k 和随机种子，并查看 loss 曲线。服务仅绑定本机，默认不公开分享；端口被占用时加 `--port 7861`。
+Open the local URL printed by Gradio, normally `http://127.0.0.1:7860`. The interface exposes prompt text, generation length, temperature, top-k, and sampling seed, alongside model metadata and training/validation loss curves. It binds to localhost with public sharing disabled. No API key is required.
 
-更多运行方式：
+<details>
+<summary>Additional commands: CPU smoke run, custom checkpoint, and verification</summary>
 
 ```bash
-# CPU 快速流程检查
+# Short CPU run
 python train.py --device cpu --steps 10 --out runs/smoke_new
 
-# 重现本项目 1000 步展示训练
-python train.py --device cpu --steps 1000 --seed 42 --out runs/showcase_new
-python generate.py --checkpoint runs/showcase_new/best.pt --prompt "Alice"
-python app.py --checkpoint runs/showcase_new/best.pt
+# Load a selected checkpoint
+python generate.py --checkpoint runs/smoke_new/best.pt --prompt "Alice"
+python app.py --checkpoint runs/smoke_new/best.pt --port 7861
 
-# 六组对照：1/4 heads × 三个种子，各 200 步
-python compare.py --device cpu --steps 200 --seeds 42 43 44 --out runs/comparison_new
-
-# 运行全部测试（无须下载语料或预训练权重）
+# Unit and integration tests; no downloaded corpus is required
 python -m pytest -q
 
-# 完成默认训练后，实际启动并调用 Gradio 生成接口
+# After default training: start a local server and call its generation API
 python scripts/verify_app.py
 ```
 
-每次训练请选择空目录；非空 `--out` 会报错以保护既有实验。使用 `python train.py --help` 查看完整参数。默认训练和1000步展示训练的预算不同，不要直接混用结果。
+Use `python train.py --help` and `python generate.py --help` for the supported options. These commands are provided for reproduction; the historical checks are documented separately below.
 
-## 数据、日志与复现
+</details>
 
-语料为 Lewis Carroll 的 *Alice’s Adventures in Wonderland*，[Project Gutenberg #11](https://www.gutenberg.org/ebooks/11)。本次下载提取 144,600 字符：前 130,140 字符训练，后 14,460 字符验证。词表只从训练区间建立，批次窗口不跨越边界；本次验证集 UNK 计数为 0。
+---
 
-- `metadata.json`：环境、配置、随机种子、参数量、数据及源码 SHA256、初始权重校验值。
-- `metrics.csv`：每步训练批次 loss，以及评估点的训练/验证 loss。
-- `summary.json`：最终指标与最佳 checkpoint 步数。
-- `vocab.json`、`best.pt`、`last.pt`：词表和推理权重。
+## Experiments & Results
 
-训练批次与评估使用独立随机生成器。`train_step_loss` 是更新前当前批次的损失；`train_loss` / `val_loss` 是更新后 eval 模式下固定抽样窗口的均值，单位为 nats/字符。评估不是全验证集的无重叠遍历。验证集用于选 best checkpoint，**没有独立测试集**。
+### Data and evaluation protocol
 
-数据来源及原始文件 SHA256 见 [data/source.json](data/source.json)。上游文本可能更新，重现实验时应核对校验值。生成超过上下文时使用最近字符窗口并重新编号位置；尚无 KV cache 或精确断点续训。
+The recorded corpus is Lewis Carroll's *Alice's Adventures in Wonderland*, obtained from [Project Gutenberg #11](https://www.gutenberg.org/ebooks/11). It contains **144,600 characters** after extraction: the first **130,140** characters are used for training and the remaining **14,460** for validation.
 
-## 实际实验结果
+The vocabulary is built from the training split only. Batch windows cannot cross the split boundary, and unseen characters map to `UNK`. The recorded validation split contains no unknown characters. Source metadata and corpus hashes are available in [`data/source.json`](data/source.json).
 
-以下均来自 2026-10-12 的真实 CPU 运行。完整 CSV、配置与原始生成文本保存在 [results/](results/)。
+Training batches and evaluation windows use separate random generators. Reported evaluation losses are averages over fixed sampled windows, in **nats per character**; lower is better. The validation split also selects the best checkpoint, so it is **not an independent test set**.
 
-| 配置 | 步数 | 参数量 | 最终训练 loss | 最终验证 loss |
+### Demonstration run
+
+| Configuration | Updates | Parameters | Final training loss | Final validation loss |
 |---|---:|---:|---:|---:|
-| 展示模型：4 heads，seed 42 | 1000 | 113,920 | 2.331909 | 2.368591 |
+| 2 layers · 64 dimensions · 4 heads · seed 42 | 1,000 | 113,920 | 2.331909 | 2.368591 |
 
-固定总宽度、层数、训练预算、数据与优化器，比较单头和四头（每组三种子、每次200步）：
+These are actual CPU measurements recorded on **2026-10-12**. The demonstration uses a longer budget than the default 200-step run. Inspect the [summary](results/default/summary.json), [loss history](results/default/metrics.csv), [configuration and environment](results/default/metadata.json), and [unedited generated text](results/default/sample.txt).
 
-| 注意力头数 | 参数量 | 验证 loss 均值 | 样本标准差 |
+### Single-head vs. multi-head attention
+
+**Question:** What changes when head count increases while total width, parameter count, and training budget remain fixed?
+
+The experiment compares **1 vs. 4 heads**, each trained for **200 updates** using paired seeds **42, 43, and 44**. Within each pair, initial-weight hashes match and the data-sampling sequence is held constant.
+
+| Attention heads | Parameters | Mean final validation loss | Sample standard deviation |
 |---|---:|---:|---:|
 | 1 | 113,920 | 2.674768 | 0.019984 |
 | 4 | 113,920 | 2.677110 | 0.019667 |
 
-同一种子的两组初始权重哈希和样本序列一致。报告固定最终步指标，避免对不同组挑选不同的最优时刻。单头在这次小实验中数值略低，差异很小，**不能推导单头或多头普遍更优**。
+**Interpretation:** The single-head configuration is slightly lower in this small experiment. The results do not establish that either configuration is generally superior. Equal parameters do not imply equal activation memory or identical computation: changing head count changes per-head dimension and the number of attention matrices.
 
-等参数不等于等计算：每头维度从64变为16，注意力矩阵数量、softmax 行为及中间激活内存不同。仅一个语料、三个种子、短训练，也没有统计显著性检验；详见 [实验报告](docs/EXPERIMENTS.md)。模型生成仍有拼写错误和不连贯句子，[真实生成样本](results/default/sample.txt) 未人工润色。
+Reproduction commands:
 
-## 项目结构
+```bash
+# Six comparison runs at the original 200-step budget
+python compare.py --device cpu --steps 200 --seeds 42 43 44 --out runs/comparison_new
 
-```text
-minigpt-lab/
-├── model.py              # Transformer 与各基础组件
-├── data.py               # 字符词表、切分与批次
-├── runtime.py            # 设备、随机种子和环境记录
-├── prepare_data.py       # 语料下载与来源追踪
-├── train.py              # 训练、评估和 checkpoint
-├── generate.py           # 自回归采样
-├── compare.py            # 单头/四头实验
-├── app.py                # Gradio 界面
-├── tests/                # 单元与集成测试
-├── scripts/verify_app.py  # 真实 HTTP 生成验收
-├── data/source.json      # 实验所用语料来源及校验值
-├── results/              # 去除本地绝对路径的实验记录
-├── docs/                 # 实验与验证说明
-├── licenses/             # 第三方许可与数据说明
-├── requirements.txt
-└── LICENSE
+# Separate 1,000-step demonstration run
+python train.py --device cpu --steps 1000 --seed 42 --out runs/showcase_new
 ```
 
-`.gitignore` 排除虚拟环境、缓存、下载语料、权重、密钥文件以及本地机器日志。训练结果仍保存在本地 `runs/`；公开的 `results/` 是已审核、保留真实指标的导出副本。
+Read the [full experiment report](docs/EXPERIMENTS.md) and [machine-readable comparison](results/comparison/comparison.json) for per-seed results, controls, and limitations.
 
-## 测试与已知局限
+---
 
-项目测试覆盖字符编码、数据隔离、因果性、注意力数值、梯度、小批量过拟合、真实训练/权重加载/采样复现、参数公平性与 Gradio 接口。发布前复测为 **17 passed，1 skipped**；跳过项为本机无 CUDA 的真实 GPU 测试。发布验收的具体证据与尚未验证事项见 [验证报告](docs/VALIDATION.md)。
+## Reproducibility & Verification
 
-未实测 CUDA/MPS、全部支持的 Python 版本或长期训练稳定性；不能以当前测试替代所有平台兼容性验证。本项目用于教学和小规模研究演示，不提供通用语言理解、聊天或高质量写作能力。
+Each training run saves its configuration, parameter count, seed, environment, data/source hashes, initial-weight hash, vocabulary, loss history, and best/final checkpoints. Published records preserve the original measurements while removing local absolute paths.
 
-## 参考资料、第三方代码和 AI 辅助开发
+**Recorded publication check: 17 passed, 1 skipped.** The skipped test requires CUDA, which was unavailable in the tested CPU-only environment. This is a historical result, not a live CI badge.
 
-- Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762)：缩放点积与多头注意力。
-- [karpathy/nanoGPT](https://github.com/karpathy/nanoGPT)：参考简洁 GPT 结构、字符建模及训练/采样组织方式。未直接复制其 Python 源文件或加载其权重；保留 [nanoGPT MIT 许可](licenses/nanoGPT-MIT.txt)。
-- [PyTorch 官方文档](https://docs.pytorch.org/docs/stable/index.html)与 [Gradio 官方文档](https://www.gradio.app/docs)：第三方库 API。checkpoint 使用 `weights_only=True`，仍仅应加载可信文件。
-- 本项目由用户提出需求，**OpenAI Codex 辅助编写代码、中文注释、测试与文档，并执行测试和修订**。AI 辅助不构成正确性保证；实际指标与未验证部分分别披露。
+Checks cover causal invariance, agreement with PyTorch's reference attention operation, gradient propagation, small-batch overfitting, checkpoint loading, seeded generation, and controlled experiment setup. The original development run also exercised Gradio's HTTP generation API. During the later publication check, a new corpus download failed with an incomplete response and HTTP 504; subsequent training/UI steps were not reported as completed in that check.
 
-原创代码按 [MIT License](LICENSE) 提供。第三方依赖按各自许可证使用，许可信息和随包取得的声明见 [licenses/](licenses/)。数据不因代码采用 MIT 而成为 MIT 数据；Gutenberg 来源页标示作品在美国属于公有领域，下载脚本保留原始电子书与条款，使用和再分发请遵守适用要求，见 [数据说明](licenses/DATA_NOTICE.md)。
+Evidence: [publication checks](results/publication_checks.json) · [validation report](docs/VALIDATION.md).
+
+### Current limitations
+
+- The corpus, model, and training budgets are small; generated text still contains spelling errors and incoherent sentences.
+- The comparison uses one corpus and three seeds, with no independent test set or statistical significance claim.
+- CUDA and MPS selection are implemented, but GPU execution and cross-platform reproducibility have not been verified.
+- Checkpoints support inference; exact training resumption and KV caching are not implemented.
+- Dependency resolution and an isolated NumPy update were checked; a complete fresh-environment installation was not verified.
+
+---
+
+## References & Acknowledgments
+
+- **Architecture:** Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762).
+- **Implementation reference:** [karpathy/nanoGPT](https://github.com/karpathy/nanoGPT), for its compact GPT design and training/sampling organization. No nanoGPT Python source files or pretrained weights were directly copied; its [MIT notice](licenses/nanoGPT-MIT.txt) is retained.
+- **Libraries:** [PyTorch](https://docs.pytorch.org/docs/stable/index.html) and [Gradio](https://www.gradio.app/docs).
+- **README presentation:** [GraphMeta](https://github.com/NoWall-572/GraphMeta_for_MAS) inspired the visual hierarchy and section layout. All MiniGPT descriptions and reported results are grounded in this repository.
+
+**AI-assisted development:** OpenAI Codex assisted with implementation, Chinese code comments, tests, documentation, and recorded execution under user-provided requirements. AI assistance is disclosed separately from the evidence of what was actually run.
+
+## License
+
+Original project code is released under the [MIT License](LICENSE). Third-party dependencies retain their own licenses; notices are collected in [`licenses/`](licenses/).
+
+The corpus is not covered by the project's MIT license. Project Gutenberg identifies the work as public domain in the USA; its source text and terms are retained by the download script. Consult the [data notice](licenses/DATA_NOTICE.md) and applicable requirements before reuse or redistribution.
