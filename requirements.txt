@@ -1,0 +1,9 @@
+# Python >= 3.11; direct dependencies pinned to the tested versions.
+# Install a CPU/CUDA torch build first if needed; see README.
+# torch==2.14.1 also accepts its matching +cpu / CUDA local build suffix.
+torch==2.14.1
+gradio==6.16.0
+pandas==2.3.3
+numpy==2.4.6
+gradio-client==2.5.0
+pytest==9.1.1

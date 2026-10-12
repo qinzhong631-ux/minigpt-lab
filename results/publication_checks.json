@@ -1,0 +1,52 @@
+{
+  "scope": "Fresh staged-file export; existing dependencies reused, with NumPy 2.4.6 isolated. Not a fresh full-environment install.",
+  "tests": "17 passed, 1 CUDA skipped",
+  "versions": {
+    "torch": "2.14.1+cpu",
+    "numpy": "2.4.6",
+    "gradio": "6.16.0"
+  },
+  "dependency_resolution": {
+    "packages": 60,
+    "yanked": 0,
+    "method": "pip --dry-run --ignore-installed --only-binary=:all:"
+  },
+  "checks": [
+    {
+      "command": [
+        "python",
+        "-c",
+        "import json,torch,numpy,gradio; print(json.dumps({'torch':str(torch.__version__),'numpy':numpy.__version__,'gradio':gradio.__version__}))"
+      ],
+      "exit_code": 0,
+      "seconds": 14.654
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "seconds": 20.534
+    },
+    {
+      "command": [
+        "python",
+        "prepare_data.py"
+      ],
+      "exit_code": 1,
+      "seconds": 33.598
+    },
+    {
+      "command": [
+        "python",
+        "prepare_data.py"
+      ],
+      "exit_code": 1,
+      "seconds": 16.885
+    }
+  ],
+  "download_status": "Network incomplete read, then HTTP 504 on retry; no partial corpus saved. This publication pass did not repeat training/UI. Original successful experiments are separately recorded."
+}

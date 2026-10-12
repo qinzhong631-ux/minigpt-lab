@@ -1,0 +1,12 @@
+{
+  "steps_completed": 10,
+  "parameter_count": 113920,
+  "best_step": 10,
+  "best_val_loss": 3.9846766233444213,
+  "final_train_loss": 3.977193737030029,
+  "final_val_loss": 3.9846766233444213,
+  "elapsed_seconds": 0.359876800008351,
+  "device": "cpu",
+  "seed": 42,
+  "n_head": 4
+}

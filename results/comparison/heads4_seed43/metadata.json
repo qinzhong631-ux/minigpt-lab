@@ -1,0 +1,75 @@
+{
+  "train_config": {
+    "data_path": "data/input.txt",
+    "out": "runs/comparison/heads4_seed43",
+    "steps": 200,
+    "batch_size": 8,
+    "block_size": 64,
+    "n_embd": 64,
+    "n_head": 4,
+    "n_layer": 2,
+    "dropout": 0.0,
+    "lr": 0.0003,
+    "weight_decay": 0.01,
+    "eval_interval": 50,
+    "eval_batches": 10,
+    "seed": 43,
+    "device": "cpu",
+    "threads": 2
+  },
+  "model_config": {
+    "vocab_size": 76,
+    "block_size": 64,
+    "n_embd": 64,
+    "n_head": 4,
+    "n_layer": 2,
+    "dropout": 0.0
+  },
+  "parameter_count": 113920,
+  "initial_parameter_sha256": "6b904d6fadc6e870de95856af7d1598a03f1c2d0a63a0a8a8306a27fa9891189",
+  "environment": {
+    "timestamp_utc": "2026-10-12T09:45:11.707907+00:00",
+    "python": "3.14.2 (tags/v3.14.2:df79316, Dec  5 2025, 17:18:21) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "processor": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+    "cpu_count": 8,
+    "device": "cpu",
+    "cuda_available": false,
+    "cuda_build": null,
+    "gpu": null,
+    "threads": 2,
+    "deterministic_algorithms": true,
+    "packages": {
+      "torch": "2.14.1+cpu",
+      "gradio": "6.16.0",
+      "pytest": "9.1.1",
+      "numpy": "2.4.0",
+      "pandas": "2.3.3",
+      "gradio_client": "2.5.0"
+    }
+  },
+  "data": {
+    "path": "data/input.txt",
+    "sha256": "b44b499274ef98e0bc12c190ee08d9c63480b7c96946101a540a0cb24b3a944c",
+    "normalized_text_sha256": "b44b499274ef98e0bc12c190ee08d9c63480b7c96946101a540a0cb24b3a944c",
+    "characters": 144600,
+    "train_characters": 130140,
+    "val_characters": 14460,
+    "split_index": 130140,
+    "train_fraction": 0.9,
+    "vocab_size": 76,
+    "val_unknown_count": 0
+  },
+  "source_sha256": {
+    "app.py": "5cbdb0299f1a0ac84fe2e1d120fa553d672846f02f28ea4afa5fb0722c7cfddc",
+    "compare.py": "08247c83523bc271de455dfc3e093cb8bd05398d819c895667bd7235f6b2d563",
+    "data.py": "75ad1f05ffaabb8e4561d8101b86a5bf90782b8bcf2783f128421eed7db0d515",
+    "generate.py": "779e74c7642d58a72f380c731e76449c0dc78fc96026ae241f3873394d8ace1d",
+    "model.py": "87ae8c9bdd7f4062b3fb52e626bcd710a28ba681a4581f86edac3acd06f6d857",
+    "prepare_data.py": "cd7cfb69cb7f1e6a345c00debbddd491a2b8da07e87d169fbf2c8a7def47ee63",
+    "runtime.py": "05ae9faa4a5e08e5ec3e59506665fb07282df357175d217b7f04d29fca8a518f",
+    "train.py": "1782546768888cc685a9c1f3d0930b03e5fb9232300ee5f7356f221cf0619980"
+  },
+  "evaluation": "fixed sampled windows; same windows at every evaluation; no full validation sweep",
+  "publication_note": "Only local filesystem paths/interpreter path were removed or made relative; metrics and hashes are unchanged."
+}

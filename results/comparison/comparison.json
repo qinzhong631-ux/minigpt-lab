@@ -1,0 +1,112 @@
+{
+  "runs": [
+    {
+      "steps_completed": 200,
+      "parameter_count": 113920,
+      "best_step": 200,
+      "best_val_loss": 2.665411448478699,
+      "final_train_loss": 2.659911060333252,
+      "final_val_loss": 2.665411448478699,
+      "elapsed_seconds": 3.169238199989195,
+      "device": "cpu",
+      "seed": 42,
+      "n_head": 1,
+      "run_directory": "results/comparison/heads1_seed42"
+    },
+    {
+      "steps_completed": 200,
+      "parameter_count": 113920,
+      "best_step": 200,
+      "best_val_loss": 2.6680683851242066,
+      "final_train_loss": 2.6612358331680297,
+      "final_val_loss": 2.6680683851242066,
+      "elapsed_seconds": 3.503375000000233,
+      "device": "cpu",
+      "seed": 42,
+      "n_head": 4,
+      "run_directory": "results/comparison/heads4_seed42"
+    },
+    {
+      "steps_completed": 200,
+      "parameter_count": 113920,
+      "best_step": 200,
+      "best_val_loss": 2.697713279724121,
+      "final_train_loss": 2.6749328136444093,
+      "final_val_loss": 2.697713279724121,
+      "elapsed_seconds": 3.0596130000049016,
+      "device": "cpu",
+      "seed": 43,
+      "n_head": 1,
+      "run_directory": "results/comparison/heads1_seed43"
+    },
+    {
+      "steps_completed": 200,
+      "parameter_count": 113920,
+      "best_step": 200,
+      "best_val_loss": 2.699672245979309,
+      "final_train_loss": 2.677661418914795,
+      "final_val_loss": 2.699672245979309,
+      "elapsed_seconds": 3.4115842999890447,
+      "device": "cpu",
+      "seed": 43,
+      "n_head": 4,
+      "run_directory": "results/comparison/heads4_seed43"
+    },
+    {
+      "steps_completed": 200,
+      "parameter_count": 113920,
+      "best_step": 200,
+      "best_val_loss": 2.6611780643463137,
+      "final_train_loss": 2.6630762100219725,
+      "final_val_loss": 2.6611780643463137,
+      "elapsed_seconds": 2.87651729999925,
+      "device": "cpu",
+      "seed": 44,
+      "n_head": 1,
+      "run_directory": "results/comparison/heads1_seed44"
+    },
+    {
+      "steps_completed": 200,
+      "parameter_count": 113920,
+      "best_step": 200,
+      "best_val_loss": 2.6635894060134886,
+      "final_train_loss": 2.66757709980011,
+      "final_val_loss": 2.6635894060134886,
+      "elapsed_seconds": 3.3766870999970706,
+      "device": "cpu",
+      "seed": 44,
+      "n_head": 4,
+      "run_directory": "results/comparison/heads4_seed44"
+    }
+  ],
+  "aggregates": [
+    {
+      "n_head": 1,
+      "n_seeds": 3,
+      "final_val_loss_mean": 2.674767597516378,
+      "final_val_loss_sample_std": 0.01998395942467706
+    },
+    {
+      "n_head": 4,
+      "n_seeds": 3,
+      "final_val_loss_mean": 2.6771100123723346,
+      "final_val_loss_sample_std": 0.019667386772785067
+    }
+  ],
+  "paired_final_val_delta_4_minus_1": [
+    {
+      "seed": 42,
+      "delta": 0.0026569366455078125
+    },
+    {
+      "seed": 43,
+      "delta": 0.0019589662551879883
+    },
+    {
+      "seed": 44,
+      "delta": 0.0024113416671749377
+    }
+  ],
+  "metric": "Final-step loss on fixed sampled validation windows; nats per character; lower is better.",
+  "limitations": "Tiny model, short budget, one corpus and only a few seeds. Equal parameters do not imply equal activation memory, per-head dimension, wall time or expressive behavior. Validation is also used for best checkpoint selection; it is not a held-out test set. No statistical superiority claim."
+}

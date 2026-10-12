@@ -1,0 +1,75 @@
+# Python environments and build outputs
+.venv*/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Test, lint, coverage and notebook caches
+.pytest_cache/
+.test_tmp/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage*
+htmlcov/
+coverage.xml
+.ipynb_checkpoints/
+
+# Credentials, local configuration and private keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa*
+id_ed25519*
+credentials*.json
+secrets*.json
+service-account*.json
+/secrets/
+/credentials/
+.aws/
+.ssh/
+.azure/
+.gcp/
+*.token
+.netrc
+.pypirc
+
+# Downloaded corpora and generated model artifacts
+/data/*.txt
+/data/*.bin
+/runs/
+/checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+wandb/
+mlruns/
+
+# Machine-specific evidence and development handoff materials
+/evidence/
+/HANDOFF.md
+/docs/PLAN.md
+/docs/handoffs/
+requirements-tested.txt
+
+# Editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
